@@ -1,18 +1,46 @@
 class Square extends React.Component {
     render() {
-
       return (
-        <button className="square">
-          {this.props.value}
+        <button className="square"
+          onClick={() => 
+            this.props.onRefresh() // =  A Board properties-ében található onClick
+           }  
+        >
+            {this.props.value}
         </button>
       );
     }
   }
   
+
   class Board extends React.Component {
-    renderSquare(i) {
-      return <Square value={i}/>;
+    constructor(props){
+      super(props);
+      this.state = {
+        squares: Array(9).fill(null),
+      };
     }
+
+    handleClick(i){
+      const squaresCopy = this.state.squares.slice();
+      squaresCopy[i] = "x"
+      console.log(squaresCopy);
+      console.log(this.state.squares);
+      this.setState( {squares:squaresCopy} );
+      //console.log(this.state.squares)
+
+    }
+
+
+    renderSquare(i) {
+      //return <Square value = {i} />;
+      return ( <Square 
+      value={this.state.squares[i]}
+      onRefresh={ () => this.handleClick(i)} 
+      />
+      );
+    }
+
   
     render() {
       const status = 'Next player: X';
@@ -40,6 +68,8 @@ class Square extends React.Component {
     }
   }
   
+
+
   class Game extends React.Component {
     render() {
       return (
