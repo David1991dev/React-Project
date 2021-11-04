@@ -18,35 +18,17 @@ class Board extends React.Component {
     );
   }
 
-
   createCell(index) {
-    let indexedSquares = [];
-    let step = 0;
-    while (step < 3) {
-      indexedSquares.push(this.renderSquare(index));
-      index++;
-      step++;
-    }
-    return indexedSquares;
+    return Array.from(Array(3)).map((item,idx)=> this.renderSquare(index+idx))
   }
 
   createTable(i) {
-    let table =[];
-    let tableSize = Array(i).fill(0);
-    tableSize = tableSize.map( (numb,index) => numb+index)
-    tableSize.map((index) =>  {
-    if(index % 3 == 0 ){
-      table.push(this.renderDiv(index))
-      }
-    }
-    )
-    return (table)
-  } 
-
+    return Array.from(Array(i)).map((curV, index) => index).filter((curV) => curV % 3 == 0).map((curV) => this.renderDiv(curV))
+  }
 
   renderDiv(index) {
     return (
-      <div>
+      <div key ={index}>
         {this.createCell(index)}
       </div>
     )
@@ -57,24 +39,6 @@ class Board extends React.Component {
   render() {
     return (
       this.createTable(9)
-
-      /*<div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>*/
     );
   }
 }
