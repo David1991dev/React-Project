@@ -1,9 +1,19 @@
 function Square(props) {
+  let name = "square"
+
+  if(props.winner.length > 0){
+    props.winner.map((numb) => {
+      if(numb == props.item){
+        name = "square back"
+      }
+    })
+  }
+
   return (
-    <button className="square" onClick={props.onRefresh} key={props.value}>
+    <button className={`${name}`} onClick={props.onRefresh} key={props.item}>
       {props.value}
     </button>
-  );
+  )
 }
 
 class Board extends React.Component {
@@ -12,14 +22,16 @@ class Board extends React.Component {
     return (
       <Square
         value={this.props.squares[i]}
+        winner={this.props.winner}
+        item={i}
         onRefresh={() => this.props.onClick(i)}
-        key={i}
+
       />
     );
   }
 
   createCell(index) {
-    return Array.from(Array(3)).map((item,idx)=> this.renderSquare(index+idx))
+    return Array.from(Array(3)).map((item, idx) => this.renderSquare(index + idx))
   }
 
   createTable(i) {
@@ -28,7 +40,7 @@ class Board extends React.Component {
 
   renderDiv(index) {
     return (
-      <div key ={index}>
+      <div key={index}>
         {this.createCell(index)}
       </div>
     )
@@ -55,7 +67,8 @@ class Game extends React.Component {
       stepNumber: 0,
       xIsNext: true,
       position: [],
-      boldButton: null
+      boldButton: null,
+      winnerSquares: []
     };
   }
 
@@ -64,7 +77,7 @@ class Game extends React.Component {
     const current = history[history.length - 1]; // Aktuális tábla állapot Objektum
     const squaresCopy = current.squares.slice(); // Aktuális tábla állapot másolata Array
     const posi = this.state.position.slice(); //Aktuális cella koordinátája
-    if (calculateWinner(squaresCopy) || squaresCopy[i]) { // Ha van győztes  vagy ugyanoda kattintunk akkor ne engedélyezze  kattintást
+    if (calculateWinner(squaresCopy, this.state.stepNumber)[1] || squaresCopy[i]) { // Ha van győztes  vagy ugyanoda kattintunk akkor ne engedélyezze  kattintást
       console.log("Már van győztes vagy ugyanoda kattintasz");
       return;
     }
@@ -79,34 +92,32 @@ class Game extends React.Component {
       xIsNext: !this.state.xIsNext, // Váltsunk jelet
       position: posi.concat([ // Pozíció Array-be illesze be az új pozíciót
         calculateposition(i)
-      ])
+      ]),
+      boldButton: this.state.stepNumber + 1
     });
   }
 
 
   jumpTo(step) {
-    const gameStatus = this.state.history[step];
-    const historyCopy = this.state.history.slice(0, step + 1);
-    this.setState({
-      history: historyCopy,
-      stepNumber: step, // Módosítjuk a lépést arra a pontra ahova vissza szeretnénk ugrani
-      xIsNext: (step % 2) === 0, // Megnézzük, hogy ennél a pontnál X-et vagy O-t kell tenni
-      squares: gameStatus.squares,
-      boldButton: step
-    })
-    //console.log(this)
+    if (step < this.state.history.length && step >= 0) {
+      const gameStatus = this.state.history[step];
+      const historyCopy = this.state.history.slice(0, step + 1);
+      // history: historyCopy,
+      this.setState({
+        stepNumber: step, // Módosítjuk a lépést arra a pontra ahova vissza szeretnénk ugrani
+        xIsNext: (step % 2) === 0, // Megnézzük, hogy ennél a pontnál X-et vagy O-t kell tenni
+        // squares: gameStatus.squares,
+        boldButton: step
+      })
 
-
+    }
 
   }
 
-
   render() {
     const history = this.state.history;
-    console.log("Step number:");
-    console.log(this.state.stepNumber)
     const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const winner = calculateWinner(current.squares, this.state.stepNumber);
     //History leképezése:
     const moves = history.map((step, move) => {
       const desc = move ?
@@ -126,26 +137,44 @@ class Game extends React.Component {
         )
       }
     })
-
     let status;
-    if (winner) {
-      status = "Győztes" + winner;
+    if (winner[1]) {
+      status = "Győztes :" + current.squares[winner[1]];
+    } else if (winner[0]) {
+      status = "Nincs győztes";
     } else {
       status = "A következő játékos: " + (this.state.xIsNext ? "X" : "O");
     }
 
+
+    const switchButtons = [
+      [
+        <div className="switch-buttons">
+          <button onClick={() => this.jumpTo(this.state.stepNumber - 1)}>Jump back</button>
+        </div>
+      ],
+      [
+        <div className="switch-buttons">
+          <button onClick={() => this.jumpTo(this.state.stepNumber + 1)}>Jump Forth</button>
+        </div>
+      ],
+    ]
 
     return (
       <div className="game">
         <div className="game-board">
           <Board
             squares={current.squares}
+            winner={winner}
             onClick={(i) => this.handleClick(i)}
           />
         </div>
         <div className="game-info">
           <div>{status}</div>
           <ol>{moves}</ol>
+        </div>
+        <div>
+          {switchButtons}
         </div>
       </div>
     );
@@ -160,7 +189,7 @@ ReactDOM.render(
 );
 
 
-function calculateWinner(square) {
+function calculateWinner(square, step) {
   const table = [
     [0, 1, 2],
     [3, 4, 5],
@@ -174,11 +203,12 @@ function calculateWinner(square) {
   for (let i = 0; i < table.length; i++) {
     const [a, b, c] = table[i];
     if (square[a] && square[a] === square[b] && square[a] === square[c]) {
-      return square[a]
-    }
-  }
-  return null
-};
+      return table[i];
+    } else if (i + 1 == table.length && step > 8) { return ["nowinner"] }
+  };
+  return [null]
+}
+
 
 function calculateposition(i) {
   const position = [

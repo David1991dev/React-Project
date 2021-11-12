@@ -31,6 +31,10 @@ body {
     text-align: center;
     width: 34px;
   }
+
+.back{
+  background: rgb(224, 48, 48);
+}
   
   .square:focus {
     outline: none;
@@ -49,3 +53,6 @@ body {
     margin-left: 20px;
   }
   
+  .switch-buttons{
+    margin: 20px;
+  }
